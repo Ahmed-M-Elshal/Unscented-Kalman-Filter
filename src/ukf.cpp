@@ -25,10 +25,10 @@ UKF::UKF() {
   P_ = MatrixXd(5, 5);
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
-  std_a_ = 30;
+  std_a_ = 3;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = 30;
+  std_yawdd_ = M_PI / 4;
   
   //DO NOT MODIFY measurement noise values below these are provided by the sensor manufacturer.
   // Laser measurement noise standard deviation position1 in m
@@ -112,9 +112,9 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
 			  Convert radar from polar to cartesian coordinates and initialize state.
 			  */
 			  // x position = Rho * cos ( Phi )
-			  // y position = - Rho * sin ( Phi )
+			  // y position = Rho * sin ( Phi )
 			  x_(0) = 	meas_package.raw_measurements_[0] * cos(meas_package.raw_measurements_[1]);
-			  x_(1) =	-meas_package.raw_measurements_[0] * sin(meas_package.raw_measurements_[1]);
+			  x_(1) =	meas_package.raw_measurements_[0] * sin(meas_package.raw_measurements_[1]);
 			}
 			else if (meas_package.sensor_type_ == MeasurementPackage::LASER) {
 			  /**
@@ -206,13 +206,13 @@ void UKF::Prediction(double delta_t) {
   for (int i = 0; i< 2*n_aug_+1; i++)
   {
     //extract values for better readability
-    double p_x = Xsig_aug(0,i);
-    double p_y = Xsig_aug(1,i);
-    double v = Xsig_aug(2,i);
-    double yaw = Xsig_aug(3,i);
-    double yawd = Xsig_aug(4,i);
-    double nu_a = Xsig_aug(5,i);
-    double nu_yawdd = Xsig_aug(6,i);
+     double p_x = Xsig_aug(0,i);
+     double p_y = Xsig_aug(1,i);
+    const double v = Xsig_aug(2,i);
+    const double yaw = Xsig_aug(3,i);
+    const double yawd = Xsig_aug(4,i);
+    const double nu_a = Xsig_aug(5,i);
+    const double nu_yawdd = Xsig_aug(6,i);
 
     //predicted state values
     double px_p, py_p;
@@ -378,13 +378,13 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   for (int i = 0; i < 2 * n_aug_ + 1; i++) {  //2n+1 simga points
 
     // extract values for better readibility
-    double p_x = Xsig_pred_(0,i);
-    double p_y = Xsig_pred_(1,i);
-    double v  = Xsig_pred_(2,i);
-    double yaw = Xsig_pred_(3,i);
+     double p_x = Xsig_pred_(0,i);
+     double p_y = Xsig_pred_(1,i);
+    const double v  = Xsig_pred_(2,i);
+    const double yaw = Xsig_pred_(3,i);
 
-    double v1 = cos(yaw)*v;
-    double v2 = sin(yaw)*v;
+    const double v1 = cos(yaw)*v;
+    const double v2 = sin(yaw)*v;
 
     // measurement model
     Zsig(0,i) = sqrt(p_x*p_x + p_y*p_y);                        //r
